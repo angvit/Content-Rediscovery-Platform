@@ -1,8 +1,26 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
+import ProfileDropdown from "./navbar/ProfileDropdown";
 
 function DropdownMenu() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+  const [token, setToken] = useState(null);
+
+  useEffect(() => {
+    const cookie = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("token="));
+    const foundToken = cookie ? cookie.split("=")[1] : null;
+    setToken(foundToken);
+  }, [pathname]);
+
+  const onLogout = () => {
+    document.cookie = `token=; path=/; max-age=0`;
+    localStorage.removeItem("csphere_token");
+    window.location.href = "/login";
+  };
 
   return (
     <div className="md:hidden">
@@ -36,20 +54,43 @@ function DropdownMenu() {
         className={`${isMobileMenuOpen ? "block" : "hidden"} md:hidden`}
         id="mobile-menu"
       >
-        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-300 absolute left-0 right-0 shadow-lg flex flex-col items-center justify-center">
-          <a
-            href="/login"
-            className="block px-3 py-2 rounded-md text-base font-medium text-[#202A29] hover:text-gray-700 hover:bg-gray-100"
-          >
-            Login
-          </a>
-          <a
-            href="/signup"
-            className="block px-3 py-2 rounded-md text-base font-medium text-[#202A29] hover:text-gray-700 hover:bg-gray-100"
-          >
-            Signup
-          </a>
-        </div>
+        {token ? (
+          <div className="px-2 pt-2 z-50 pb-3 space-y-1 sm:px-3 bg-gray-300 absolute left-0 right-0 shadow-lg flex flex-col items-center justify-center">
+            <a
+              href="/profile"
+              className="block px-3 py-2 rounded-md text-base font-medium text-[#202A29] hover:text-gray-700 hover:bg-gray-100"
+            >
+              Profile
+            </a>
+            <a
+              href="/setting"
+              className="block px-3 py-2 rounded-md text-base font-medium text-[#202A29] hover:text-gray-700 hover:bg-gray-100"
+            >
+              Settings
+            </a>
+            <button
+              onClick={() => onLogout()}
+              className="block px-3 py-2 rounded-md text-base font-medium text-[#202A29] hover:text-gray-700 hover:bg-gray-100"
+            >
+              logout
+            </button>
+          </div>
+        ) : (
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-300 absolute left-0 right-0 shadow-lg flex flex-col items-center justify-center">
+            <a
+              href="/login"
+              className="block px-3 py-2 rounded-md text-base font-medium text-[#202A29] hover:text-gray-700 hover:bg-gray-100"
+            >
+              Login
+            </a>
+            <a
+              href="/signup"
+              className="block px-3 py-2 rounded-md text-base font-medium text-[#202A29] hover:text-gray-700 hover:bg-gray-100"
+            >
+              Signup
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );

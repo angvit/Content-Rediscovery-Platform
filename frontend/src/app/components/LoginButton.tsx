@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
+import ProfileDropdown from "./navbar/ProfileDropdown";
 
 function LoginButton() {
   const pathname = usePathname();
@@ -47,12 +49,9 @@ function LoginButton() {
           </Link>
         </div>
       ) : (
-        <button
-          className="bg-[#E0E5E4] text-[#202A29] px-6 py-3 rounded-lg hover:bg-[#CCD3D2] text-base font-large hidden md:block"
-          onClick={token ? onLogout : onLogin}
-        >
-          {token ? "Logout" : "Login"}
-        </button>
+        <>
+          <ProfileDropdown />
+        </>
       )}
     </>
   );

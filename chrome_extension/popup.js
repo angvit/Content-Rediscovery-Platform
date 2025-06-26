@@ -2,20 +2,36 @@ import { BACKEND_URL, FRONTEND_URL, DEPLOYED } from "./config.dev.js";
 const backend_url = DEPLOYED ? BACKEND_URL : "http://127.0.0.1:8000";
 const frontend_url = DEPLOYED ? FRONTEND_URL : "http://localhost:3000";
 
-// Check if the script is running in the correct context
+let userEmail = "";
 
-// Helper function to wrap chrome.cookies.get in a Promise
-function getCookieAsync(details) {
-  return new Promise((resolve, reject) => {
-    chrome.cookies.get(details, (cookie) => {
-      // Check for chrome.runtime.lastError, which indicates problems
-      // like missing host permissions.
-      if (chrome.runtime.lastError) {
-        return reject(chrome.runtime.lastError);
-      }
-      resolve(cookie); // Resolve with the cookie object (which might be null)
-    });
-  });
+//Get user permission to get email
+chrome.identity.getProfileUserInfo({ accountStatus: "ANY" }, (userInfo) => {
+  userEmail = userInfo.email;
+});
+
+function getNotes() {
+  const textarea = document.getElementById("notesTextarea");
+  const content = textarea.value;
+
+  return content;
+}
+
+function insertMessage(message, messageType) {
+  // const parent = document.querySelector("app");
+  const message_p = document.querySelector(".message-p");
+  const submit_button = document.querySelector(".action-bar");
+
+  submit_button.disabled = true;
+  if (!message_p) return;
+
+  message_p.textContent = message;
+  message_p.style.color = messageType === "error" ? "red" : "green";
+
+  setTimeout(() => {
+    message_p.textContent = "";
+    message_p.style.color = "";
+    submit_button.disabled = false;
+  }, 5000);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -39,46 +55,51 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         console.log("Attempting to get cookie for URL:", frontend_url);
-        const cookie = await getCookieAsync({
-          url: frontend_url,
-          name: "token",
-        });
-        console.log("Cookie lookup finished. Cookie object:", cookie);
-        alert("Cookie lookup finished. Cookie object: " + cookie);
 
-        if (cookie && cookie.value) {
-          const cookieVal = cookie.value;
-          console.log("Retrieved token from cookie:", cookieVal);
-          console.log("Proceeding with fetch using token:", cookieVal);
-          const endpoint = `${backend_url}/content/save`;
-          const response = await fetch(endpoint, {
-            method: "POST",
-            credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-              Authorization: `Bearer ${cookieVal}`,
-            },
-            body: JSON.stringify({
-              url: tab.url,
-              title: tab.title,
-              source: "chrome_extension",
-            }),
-          });
+        if (userEmail) {
+          try {
+            const notes = getNotes();
+            const endpoint = `${backend_url}/content/save`;
 
-          console.log("Raw response from server: ", response);
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const response = await fetch(endpoint, {
+              method: "POST",
+              credentials: "include",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                // Authorization: `Bearer ${cookieVal}`,
+              },
+              body: JSON.stringify({
+                url: tab.url,
+                title: tab.title,
+                source: "chrome_extension",
+                email: userEmail,
+                notes: notes,
+              }),
+            });
+
+            // Wait for JSON parsing
+            const data = await response.json();
+
+            console.log("Raw response from server:", response);
+            console.log("Parsed response data:", data);
+
+            // Check if server returned a successful status
+            if (data.status !== "Success") {
+              throw new Error(`Server returned error status: ${data.status}`);
+            }
+
+            insertMessage("Bookmark successfully saved", "success");
+          } catch (err) {
+            alert("Error saving bookmark:" + err);
+            insertMessage("Failed to save bookmark", "error");
           }
-          const data = await response.json();
-          console.log("Response data from server: ", data);
-          alert("Bookmark saved successfully!");
         } else {
           console.warn("Token cookie not found or has no value.");
           alert("Could not find authentication token. Please log in.");
         }
       } catch (error) {
-        console.error("An error occurred:", error);
+        insertMessage("An error occured, please try again later", "error");
         // Display a user-friendly error message if needed
         alert(`An error occurred: ${error.message}`);
       }

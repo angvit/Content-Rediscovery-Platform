@@ -32,7 +32,7 @@ else:
 
 
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 
 class Token(BaseModel):
@@ -117,4 +117,3 @@ def get_current_user_id(token: Annotated[str, Depends(oauth2_scheme)]) -> UUID:
 
   
     
-    return True

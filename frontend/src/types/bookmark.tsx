@@ -6,4 +6,5 @@ export interface Bookmark {
   ai_summary?: string;
   first_saved_at?: string; // ISO timestamp, might also be Date if parsed
   tags?: string[];
+  notes?: string;
 }

@@ -91,7 +91,10 @@ export default function LoginForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="text-black">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="text-black space-y-4"
+      >
         <FormField
           control={form.control}
           name="username"

@@ -6,10 +6,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
+
+if DATABASE_URL.startswith('postgres://'):
+    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
 print("DB URL: ", DATABASE_URL)
 
 try:
-    engine = create_engine(DATABASE_URL)
+    engine = create_engine(DATABASE_URL, connect_args={
+        "options": "-c timezone=UTC"
+    })
     print("Connected")
 except Exception as e:
     print("Connection falied: ", e)
@@ -17,6 +22,7 @@ except Exception as e:
 # managing transactions and DB state
 SessionLocal = sessionmaker(bind=engine)
 
+#Initialize the base for all datamodels
 Base = declarative_base()
 
 # yield a fresh session per request (FASTAPI)

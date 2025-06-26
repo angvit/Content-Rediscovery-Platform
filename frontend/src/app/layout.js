@@ -2,14 +2,10 @@ import { Geist, Geist_Mono, PT_Serif } from "next/font/google";
 
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 
-import LogoutButton from "@/app/components/LogoutButton";
 import LoginButton from "@/app/components/LoginButton";
 import DropdownMenu from "@/app/components/DropdownMenu";
 import LogoComponent from "@/app/components/LogoComponent";
-import Link from "next/link";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,9 +32,6 @@ export const metadata = {
 };
 
 export default async function RootLayout({ children }) {
-  const cookieStore = cookies();
-  const token = cookieStore.get("cshere_token");
-  console.log("TOKEN:", token);
   return (
     <html
       lang="en"
@@ -46,22 +39,19 @@ export default async function RootLayout({ children }) {
       style={{ "--font-custom": fontFamily }}
     >
       <body className="relative font-custom">
-        <header
-          className="h-25 bg-gray-300 w-full flex items-center justify-between px-6 sm:px-8 lg:px-12"
-          // Removed inline style attribute
-        >
-          {/* Left side: Logo and Desktop Navigation */}
+        <header className="h-25 bg-gray-300 w-full flex items-center justify-between px-6 sm:px-8 lg:px-16">
           <div className="flex items-center space-x-4 md:space-x-8">
             <LogoComponent />
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-4">
             <LoginButton />
 
             <DropdownMenu />
           </div>
         </header>
         {children}
+        <Toaster />
       </body>
     </html>
   );

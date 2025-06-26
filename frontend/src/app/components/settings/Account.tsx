@@ -1,10 +1,12 @@
-"use client";
-import { useEffect, useState } from "react";
+import React from "react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Button } from "@/components/ui/button";
+
 import {
   Form,
   FormControl,
@@ -13,55 +15,48 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/ui/password-input";
-import Link from "next/link";
 
 const formSchema = z.object({
-  username: z.string().min(1).min(5).max(50),
+  username: z.string(),
   email: z.string(),
-  confirmemail: z.string(),
   password: z.string(),
   confirmpassword: z.string(),
 });
 
-export default function SignupForm() {
+function Account() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       username: "",
       email: "",
-      confirmemail: "",
       password: "",
       confirmpassword: "",
     },
   });
 
-  const [message, setMessage] = useState("");
-
-  const watchedEmail = form.watch("email");
-
-  useEffect(() => {
-    console.log("Email changed:", watchedEmail);
-  }, [watchedEmail]);
+  const token = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("token="))
+    ?.split("=")[1];
 
   async function onSubmit(values: z.infer<typeof formSchema>): Promise<void> {
+    console.log("Submitting");
     try {
       console.log(values);
-      if (values.password !== values.confirmpassword) {
+      if (
+        values.password !== "" &&
+        values.password !== values.confirmpassword
+      ) {
         toast.error("Passwords do not match.");
         return;
       }
-      if (values.email !== values.confirmemail) {
-        toast.error("Emails do not match.");
-        return;
-      }
 
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/signup`;
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/settings/update`;
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           username: values.username,
@@ -77,82 +72,71 @@ export default function SignupForm() {
         return;
       }
 
-      toast.success("Signup successful!");
+      toast.success("update sucessful!");
     } catch (error) {
       console.error("Form submission error", error);
-      toast.error("Failed to submit the form. Please try again.");
+      toast.error("Failed to update, please try again");
     }
   }
-
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="text-black">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="text-black w-full flex grow flex-col space-y-4 px-12"
+      >
         <FormField
           control={form.control}
           name="username"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="w-full">
               <FormLabel>Username</FormLabel>
-              <FormControl>
+              <FormControl className="w-full">
                 <Input placeholder="username" type="text" {...field} />
               </FormControl>
-
               <FormMessage />
             </FormItem>
           )}
         />
-
         <FormField
           control={form.control}
           name="email"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email </FormLabel>
-              <FormControl>
-                <Input placeholder="Email " type="email" {...field} />
+            <FormItem className="w-full">
+              {" "}
+              {/* Added w-full */}
+              <FormLabel>Email</FormLabel>
+              <FormControl className="w-full">
+                <Input placeholder="email" type="text" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-
-        <FormField
-          control={form.control}
-          name="confirmemail"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Confirm Email </FormLabel>
-              <FormControl>
-                <Input placeholder="confirm email " type="email" {...field} />
-              </FormControl>
-
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         <FormField
           control={form.control}
           name="password"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="w-full">
+              {" "}
+              {/* Added w-full */}
               <FormLabel>Password</FormLabel>
-              <FormControl>
-                <PasswordInput placeholder="Enter your password" {...field} />
+              <FormControl className="w-full">
+                <PasswordInput placeholder="password" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-
         <FormField
           control={form.control}
           name="confirmpassword"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Confirm Pasword</FormLabel>
-              <FormControl>
-                <PasswordInput placeholder="Confirm Password" {...field} />
+            <FormItem className="w-full">
+              {" "}
+              {/* Added w-full */}
+              <FormLabel>Confirm password</FormLabel>
+              <FormControl className="w-full">
+                <PasswordInput placeholder="confirm password" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -160,21 +144,14 @@ export default function SignupForm() {
         />
 
         <Button
-          className="bg-[#202A29] hover:bg-gray-600 transition-all duration-200 text-white font-semibold py-2 px-4 rounded w-full"
+          className="bg-[#202A29] hover:bg-gray-600 transition-all duration-200 text-white font-semibold py-2 px-4 rounded w-40"
           type="submit"
         >
-          Submit
+          Save changes
         </Button>
       </form>
-      <hr />
-      <div className="text-center text-gray-400 mt-4">
-        <p className="text-sm">Have an account?</p>
-        <Link href="/login">
-          <Button variant="link" className="text-blue-500 hover:text-blue-700">
-            Login
-          </Button>
-        </Link>
-      </div>
     </Form>
   );
 }
+
+export default Account;

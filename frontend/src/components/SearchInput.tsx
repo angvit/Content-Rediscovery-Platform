@@ -18,23 +18,21 @@ export default function SearchInput({ onSearch }: Props) {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="relative w-full sm:max-w-2xl mx-auto mb-8"
-    >
+    <form onSubmit={handleSubmit} className="w-full relative">
       <input
+        id="search-form"
         type="text"
         placeholder="Search..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         className="w-full px-4 py-2 pr-12 rounded-full border border-black text-black placeholder-gray-400 bg-gray-300
-             focus:outline-none focus:ring-2 focus:ring-gray-600 
-             hover:ring-2 hover:ring-gray-600"
+    focus:outline-none focus:ring-2 focus:ring-gray-600 
+    hover:ring-2 hover:ring-gray-600"
       />
 
       <button
         type="submit"
-        className="absolute top-1/2 right-9 transform -translate-y-5"
+        className="absolute inset-y-0 right-3 flex items-center justify-center"
       >
         <Search className="h-5 w-5 text-gray-500" />
       </button>

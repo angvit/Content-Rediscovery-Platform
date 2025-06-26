@@ -2,6 +2,10 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+html {
+  scroll-behavior: smooth;
+}
+
 @theme {
   --font-ptserif: "PT+Serif";
 }
@@ -11,7 +15,7 @@ main {
 }
 
 form {
-  @apply space-y-6 p-6 rounded-2xl w-full max-w-lg;
+  @apply rounded-2xl w-full;
 }
 
 p,
@@ -50,4 +54,12 @@ button {
   font-family: "PT Serif", serif;
   font-weight: 700;
   font-style: italic;
+}
+
+form {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  outline: black;
+  color: black;
 }
