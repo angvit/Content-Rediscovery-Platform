@@ -3,7 +3,7 @@ import re
 import json
 import requests
 
-from openai import OpenAI
+import openai
 from uuid import UUID
 from bs4 import BeautifulSoup
 from readability import Document
@@ -30,7 +30,16 @@ class ContentEmbeddingManager:
         self.embedding_model = embedding_model_name
         self.embedding_model_name = embedding_model_name
         self.summary_model = summary_model_name
-        self.openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        
+        # openai client for embeddings
+        openai.api_key = os.getenv("OPENAI_API_KEY")
+        self._embedding_client = openai
+
+        # OpenRouter client for summarizations
+        self._summary_client = openai.OpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=os.getenv("OPENROUTER_API_KEY")
+        )
 
 
     ###############################################################################
@@ -161,7 +170,7 @@ class ContentEmbeddingManager:
 
     def _generate_embedding(self, text):
         try:
-            response = self.openai_client.embeddings.create(
+            response = self._embedding_client.embeddings.create(
                 model=self.embedding_model,
                 input=text
             )
@@ -264,7 +273,7 @@ class ContentEmbeddingManager:
     
     def _summarize_content(self, summary_input):
         try:
-            response = self.openai_client.chat.completions.create(
+            response = self._summary_client.chat.completions.create(
                 model=self.summary_model,
                 messages=[
                     {
@@ -282,5 +291,5 @@ class ContentEmbeddingManager:
             )
             return response.choices[0].message.content.strip()
         except Exception as e:
-            print(f"OpenAI summarization failed: {e}")
+            print(f"OpenRouter summarization failed: {e}")
             return None
