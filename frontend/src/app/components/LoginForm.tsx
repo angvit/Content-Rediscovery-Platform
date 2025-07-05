@@ -16,6 +16,8 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { PasswordInput } from "@/components/ui/password-input";
 import { useRouter } from "next/navigation";
+import { GoogleLogin } from "@react-oauth/google";
+import { jwtDecode } from "jwt-decode";
 
 const formSchema = z.object({
   username: z.string().min(1).min(5).max(50),
@@ -28,6 +30,28 @@ interface responseData {
   error?: string;
   token?: string;
 }
+interface GoogleDecodeInterface {
+  aud: string;
+  azp: string;
+  email: string;
+  email_verified: boolean;
+  exp: number;
+  family_name: string;
+  given_name: string;
+  iat: number;
+  iss: string;
+  jti: string;
+  name: string;
+  nbf: number;
+  picture: string;
+  sub: string;
+}
+
+interface ResponseData {
+  success: boolean;
+  message: string;
+  token: string;
+}
 
 export default function LoginForm() {
   const form = useForm<z.infer<typeof formSchema>>({
@@ -39,6 +63,39 @@ export default function LoginForm() {
   });
 
   const router = useRouter();
+
+  const googleLogin = async (credentials: any) => {
+    const data: GoogleDecodeInterface = jwtDecode(credentials.credential);
+    console.log(data);
+
+    const userData = {
+      google_id: data.sub,
+    };
+
+    try {
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/google/login`;
+
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userData),
+      });
+
+      const data: ResponseData = await response.json();
+
+      console.log(data);
+      if (data.success) {
+        document.cookie = `token=${data.token}; path=/; max-age=3600`;
+        router.push("/home");
+      } else {
+        toast.error("no user found");
+      }
+    } catch (error) {
+      toast.error("Failed to submit the form. Please try again.");
+    }
+  };
 
   async function onSubmit(
     values: z.infer<typeof formSchema>
@@ -131,7 +188,12 @@ export default function LoginForm() {
         </Button>
       </form>
 
-      <hr />
+      <hr className="border-black mb-4" />
+      <GoogleLogin
+        onSuccess={(credentials) => googleLogin(credentials)}
+        onError={() => toast.error("Failed to signup with google.")}
+      />
+
       <div className="text-center text-gray-400 mt-4">
         <p className="text-sm">Don't have an account?</p>
         <Link href="/signup">

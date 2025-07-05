@@ -4,8 +4,8 @@ from datetime import datetime, timedelta
 from fastapi import Depends, HTTPException, status
 from typing import Annotated
 from uuid import UUID
+from jwt import exceptions as jwt_exceptions
 
-from jose import JWTError
 
 import jwt
 
@@ -109,7 +109,7 @@ def get_current_user_id(token: Annotated[str, Depends(oauth2_scheme)]) -> UUID:
             raise credentials_exception
         # token_data = TokenData(username=username)
         return UUID(user_id)
-    except JWTError:
+    except jwt_exceptions.PyJWTError:
         raise credentials_exception
 
     # You can fetch the user from your DB here, but for example purposes:

@@ -18,10 +18,10 @@ export default function page() {
       >
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold mb-4 text-black">
-            Welcome Back
+            Signup
           </CardTitle>
           <CardDescription className="text-black mb-4">
-            Please log in to your account
+            Please enter the information needed
           </CardDescription>
           <hr className="border-black mb-4" />
         </CardHeader>

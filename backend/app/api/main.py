@@ -20,7 +20,7 @@ from app.data_models.content_item import ContentItem
 from app.data_models.content_ai import ContentAI
 from app.schemas.content import ContentCreate, ContentWithSummary, UserSavedContent, DBContent, TabRemover, NoteContentUpdate
 from app.schemas.settings import UpdateSettings
-from app.schemas.user import UserCreate, UserSignIn
+from app.schemas.user import UserCreate, UserSignIn, UserGoogleCreate, UserGoogleSignIn
 from app.preprocessing.preprocessor import QueryPreprocessor
 from app.embeddings.content_embedding_manager import ContentEmbeddingManager
 from app.data_models.user import User
@@ -86,8 +86,56 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db.refresh(new_user)  # Refresh to get the user with the generated ID
 
     print("User created: ", new_user)
+    token = create_access_token(data={"sub": str(new_user.id)})
+    
 
-    return {"username": user.username, "email": user.email, "password": user.password}
+    return {'success': True, 'message': 'Google signup was succesful', 'token': token}
+
+
+@app.post("/api/google/signup")
+def google_signup(user: UserGoogleCreate,  db: Session = Depends(get_db)):
+    print(user)
+
+    #Check for existing user
+    existing_user = db.query(User).filter(User.email == user.email and User.google_id == user.google_id).first()
+
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Google account already registered")
+    
+
+    new_user = User(
+        id=uuid4(),  # Generate UUID for the user
+        username=user.username,
+        email=user.email,
+        password='',
+        created_at=datetime.utcnow() ,
+        google_id=user.google_id
+    )
+
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)  # Refresh to get the user with the generated ID
+
+    token = create_access_token(data={"sub": str(new_user.id)})
+    
+
+
+
+
+
+
+    return {'success': True, 'message': 'Google signup was succesful', 'token': token}
+
+
+@app.post("/api/google/login")
+def google_login(user : UserGoogleSignIn, db : Session =  Depends(get_db)):
+    db_user = db.query(User).filter(user.google_id == User.google_id).first()
+    if not db_user:
+        raise HTTPException(status_code=400, detail="User not found")
+    
+    token = create_access_token(data={"sub": str(db_user.id)})
+
+    return {'message' : 'user found', 'token' : token, 'success' : True}
 
 
 @app.post("/api/login")
@@ -454,7 +502,7 @@ def get_piece_content(content_id: UUID, user_id: UUID = Query(...), db: Session 
     return content
 
 
-app.delete("/content/{content_id}", status_code=204)
+@app.delete("/content/{content_id}", status_code=204)
 def delete_content(content_id: UUID, user_id: UUID, db: Session=Depends(get_db)):
     content = db.query(Content).filter(Content.content_id == content_id, Content.user_id == user_id).first()
     if not content:
@@ -464,6 +512,13 @@ def delete_content(content_id: UUID, user_id: UUID, db: Session=Depends(get_db))
     db.commit()
     return
 
+
+
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run("app.api.main:app", host="0.0.0.0", port=port)
+
+
+

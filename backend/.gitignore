@@ -9,6 +9,8 @@ __pycache__/
 
 # Ignore environment variables
 .env
+.env/
+/.env
 
 # Ignore Alembic migration cache if unwanted
 alembic/__pycache__/

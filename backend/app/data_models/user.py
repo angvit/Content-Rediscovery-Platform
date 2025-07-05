@@ -14,6 +14,7 @@ class User(Base):
     created_at = Column(TIMESTAMP, server_default="NOW()")
     username = Column(String,  nullable=False)
     password = Column(String, nullable=False)
+    google_id = Column(String, nullable=True)
 
 
 
